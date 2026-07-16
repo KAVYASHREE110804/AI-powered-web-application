@@ -4,3 +4,4 @@ yt-dlp
 scenedetect
 opencv-python
 numpy
+openai

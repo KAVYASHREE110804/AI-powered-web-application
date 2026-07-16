@@ -1,4 +1,4 @@
-"""DemoLens pipeline entry point — Module 3 test: scenes + keyframes."""
+"""DemoLens pipeline entry point — Module 4 test: full pipeline through PRD."""
 
 import os
 import sys
@@ -12,8 +12,11 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 from modules.youtube import validate_videos
 from modules.transcribe import transcribe_all_videos
 from modules.scene_detector import process_all_videos
+from modules.prd_generator import generate_prd
 
-load_dotenv()
+# override=True: a stale OPENAI_API_KEY in the Windows user environment
+# would otherwise shadow the key in .env
+load_dotenv(override=True)
 
 test_urls = [
     # "Me at the zoo" — 19s, single shot (exercises the no-cuts fallback)
@@ -44,6 +47,14 @@ def main() -> None:
                 f"{frame['timestamp_seconds']:.1f}s -> "
                 f"{frame['image_path']}"
             )
+
+    prd = generate_prd(
+        videos_with_scenes,
+        os.getenv("OPENAI_API_KEY"),
+    )
+
+    print(f"\n\nPRD generated: {len(prd)} characters")
+    print("Saved to outputs/prd.md")
 
 
 if __name__ == "__main__":
