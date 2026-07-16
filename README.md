@@ -100,7 +100,23 @@ OPENAI_MODEL=openai/gpt-4o
 OPENAI_IMAGE_DETAIL=low
 ```
 
-## Run
+## Run — Web app (recommended)
+
+```bash
+python app.py
+```
+
+Then open **http://127.0.0.1:5000**:
+
+1. Enter 1–4 YouTube demo video URLs
+2. Enter your OpenAI API key (password field — used for that generation
+   session only, never stored; leave blank to fall back to the server's
+   `.env` key if one is configured)
+3. Watch the five pipeline stages progress live, with streaming logs
+4. Read the rendered PRD and preview each mockup inline (or open it
+   full-size in a new tab)
+
+## Run — CLI
 
 ```bash
 # URLs as arguments:
@@ -141,7 +157,10 @@ outputs/<video_id>/   - Extracted keyframe JPEGs per video
 ## Project structure
 
 ```
-pipeline.py           - Master pipeline entry point (input, key prompt,
+app.py                - Flask web app (URL form, session-only key input,
+                        live progress, inline PRD + mockup viewing)
+templates/index.html  - Single-page web UI (Airbnb design language)
+pipeline.py           - CLI pipeline entry point (input, key prompt,
                         orchestration, graceful errors)
 main.py               - Development entry point used while building modules
 modules/
