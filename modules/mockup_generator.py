@@ -86,12 +86,19 @@ def generate_mockups(prd: str, openai_key: str) -> list:
     return mockups
 
 
+def _safe_filename(screen_name: str, fallback: str) -> str:
+    """Slugify a screen name; model output may contain characters like
+    '/' or ':' that are invalid in (Windows) filenames."""
+    slug = re.sub(r"[^a-z0-9_-]+", "_", screen_name.lower()).strip("_")
+    return slug or fallback
+
+
 def save_mockups(mockups: list, output_dir: str = "outputs/mockups") -> list:
     """Save each mockup as an HTML file; return the saved paths."""
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     paths = []
-    for mockup in mockups:
-        filename = mockup["screen_name"].lower().replace(" ", "_")
+    for i, mockup in enumerate(mockups, start=1):
+        filename = _safe_filename(mockup["screen_name"], f"screen_{i}")
         path = f"{output_dir}/{filename}.html"
         with open(path, "w", encoding="utf-8") as f:
             f.write(mockup["html"])

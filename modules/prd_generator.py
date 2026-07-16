@@ -56,6 +56,8 @@ def _select_frames(videos: list, max_images: int = MAX_IMAGES) -> list:
     all_frames = [frame for video in videos for frame in video.get("frames", [])]
     if len(all_frames) <= max_images:
         return all_frames
+    if max_images < 2:
+        return all_frames[:max_images]
     step = (len(all_frames) - 1) / (max_images - 1)
     indices = sorted({round(i * step) for i in range(max_images)})
     return [all_frames[i] for i in indices]
@@ -114,6 +116,8 @@ def generate_prd(videos: list, openai_key: str) -> str:
     """Generate a PRD with GPT-4o, streaming output to the console."""
     if not openai_key:
         raise ValueError("Missing OpenAI API key. Set OPENAI_API_KEY in .env.")
+    if not videos:
+        raise ValueError("No videos to generate a PRD from.")
 
     messages = build_messages(videos)
     image_count = sum(

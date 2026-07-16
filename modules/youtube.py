@@ -49,9 +49,15 @@ def get_video_metadata(url: str) -> dict:
     try:
         with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True}) as ydl:
             info = ydl.extract_info(url, download=False)
-            duration_seconds = info["duration"]
+            duration_seconds = info.get("duration")
     except yt_dlp.utils.DownloadError as exc:
         raise ValueError(f"Could not read video duration for {url}: {exc}") from exc
+
+    # Active live streams and premieres report no fixed duration.
+    if duration_seconds is None:
+        raise ValueError(
+            f"Video has no fixed duration (live stream or premiere?): {url}"
+        )
 
     return {
         "id": video_id,
