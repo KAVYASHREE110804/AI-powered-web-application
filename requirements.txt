@@ -1,3 +1,6 @@
 python-dotenv
 requests
 yt-dlp
+scenedetect
+opencv-python
+numpy
