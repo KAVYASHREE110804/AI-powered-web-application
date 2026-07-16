@@ -1,8 +1,13 @@
 """DemoLens pipeline entry point — Module 2 test: validation + transcription."""
 
 import os
+import sys
 
 from dotenv import load_dotenv
+
+# Windows consoles default to cp1252, which crashes on transcript characters
+# like '♪'; force UTF-8 so previews always print.
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 from modules.youtube import validate_videos
 from modules.transcribe import transcribe_all_videos
