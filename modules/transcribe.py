@@ -23,6 +23,16 @@ _PERMANENT_ERROR_CODES = {"too_long", "unsupported_url", "auth_required"}
 
 _HEADERS = {"User-Agent": USER_AGENT}
 
+# Cold-cache retry: a first-ever request for a video triggers on-demand
+# transcription server-side and can 500 / drop while the job is still
+# processing; a later attempt finds the finished transcript in the cache.
+MAX_ATTEMPTS = 6
+RETRY_DELAYS = [3, 6, 12, 20, 30]  # seconds between the 6 attempts
+
+
+class TranscriptNotReadyError(RuntimeError):
+    """Service-side, retriable failure (5xx, processing, dropped stream)."""
+
 
 def check_cached(video_id: str) -> str | None:
     """Return the permalink path if this video is already transcribed."""
@@ -95,15 +105,15 @@ def transcribe_new(video_url: str, timeout_minutes: int = 10) -> dict:
                 elif event == "error":
                     err = json.loads(payload)
                     code = err.get("code", "unknown")
-                    retriable = (
-                        "" if code in _PERMANENT_ERROR_CODES else " (retriable)"
-                    )
-                    raise RuntimeError(
+                    message = (
                         f"Transcription failed for {video_url}: "
-                        f"{code}: {err.get('message', '')}{retriable}"
+                        f"{code}: {err.get('message', '')}"
                     )
+                    if code in _PERMANENT_ERROR_CODES:
+                        raise RuntimeError(message)
+                    raise TranscriptNotReadyError(message)
 
-    raise RuntimeError(
+    raise TranscriptNotReadyError(
         f"SSE stream for {video_url} ended without a 'done' event"
     )
 
@@ -115,15 +125,8 @@ def _segments_to_text(segments: list) -> str:
     )
 
 
-def transcribe_video(video_url: str, api_key: str | None = None) -> dict:
-    """Transcribe one video, using the cache when possible.
-
-    `api_key` is accepted for interface compatibility but unused — the
-    API currently requires no key.
-    """
-    video_id = extract_video_id(video_url)
-
-    print(f"Checking transcript cache for {video_url}...")
+def _attempt_transcription(video_url: str, video_id: str) -> dict:
+    """One cache-check + transcribe pass (no retries)."""
     permalink = check_cached(video_id)
 
     if permalink:
@@ -139,7 +142,6 @@ def transcribe_video(video_url: str, api_key: str | None = None) -> dict:
         summary = done.get("summary_md")
         permalink_url = _absolutize(done["permalink"])
 
-    print("Transcription complete.")
     return {
         "url": video_url,
         "transcript": _segments_to_text(segments),
@@ -147,6 +149,53 @@ def transcribe_video(video_url: str, api_key: str | None = None) -> dict:
         "summary": summary,
         "permalink": permalink_url,
     }
+
+
+def transcribe_video(video_url: str, api_key: str | None = None) -> dict:
+    """Transcribe one video with cold-cache retries.
+
+    Retries (with backoff) on 5xx, connection errors, and retriable
+    service errors; fails fast on 4xx and permanent error codes.
+    `api_key` is accepted for interface compatibility but unused — the
+    API currently requires no key.
+    """
+    video_id = extract_video_id(video_url)
+    print(f"Checking transcript cache for {video_url}...")
+
+    last_error = None
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            result = _attempt_transcription(video_url, video_id)
+            print("Transcription complete.")
+            return result
+        except requests.HTTPError as exc:
+            status = (
+                exc.response.status_code if exc.response is not None else None
+            )
+            if status is not None and 400 <= status < 500:
+                # Permanent: bad video id, unavailable video, rate limit.
+                raise ValueError(
+                    f"Video not found or invalid URL for transcription "
+                    f"(usetranscribe.io returned {status}): {video_url}"
+                ) from exc
+            last_error = exc  # 5xx → likely cold-cache processing
+        except (requests.ConnectionError, requests.Timeout) as exc:
+            last_error = exc
+        except TranscriptNotReadyError as exc:
+            last_error = exc
+
+        if attempt < MAX_ATTEMPTS:
+            delay = RETRY_DELAYS[attempt - 1]
+            print(
+                f"Transcript not ready yet, retrying in {delay}s... "
+                f"(attempt {attempt}/{MAX_ATTEMPTS})"
+            )
+            time.sleep(delay)
+
+    raise RuntimeError(
+        f"Transcription still not ready after {MAX_ATTEMPTS} attempts for "
+        f"{video_url} — the service may be under load, try again shortly."
+    ) from last_error
 
 
 def transcribe_all_videos(videos: list, api_key: str | None = None) -> list:
