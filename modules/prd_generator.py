@@ -34,10 +34,25 @@ GROUNDING RULES (strict):
   "Not shown in source material." Do not fill the gap with plausible guesses.
 
 LABELING:
+- Apply [Observed]/[Inferred] labels in EVERY section — Product Overview,
+  Business Scenarios, User Roles, Key Features, User Stories, and
+  Technical/Product Specifications. No section is exempt: an unlabeled
+  statement is a grounding violation.
 - Mark content as [Observed] when it is directly stated or visible in the
   source, and reference the transcript line or scene it came from.
 - Mark content as [Inferred] when it is reasonable extrapolation. It must be
   clearly flagged as inference, never presented as fact.
+- User Roles: a role is [Observed] only if the source explicitly names it
+  (e.g. the narration says "product teams"); roles you deduce from what the
+  product does are [Inferred].
+- Key Features: every feature item carries the literal [Observed] or
+  [Inferred] tag IN ADDITION TO its verbatim Source quote — a quote alone
+  is not a substitute for the tag.
+- User Stories are extrapolations by nature — label each one [Inferred]
+  unless the source literally demonstrates that exact story.
+- Technical/Product Specifications: label each spec item, and flag any
+  descriptive term the source never uses (e.g. "real-time") as [Inferred]
+  or drop it.
 
 Produce the PRD with these sections: Product Overview, Business Scenarios,
 User Roles, Key Features, User Stories, Technical/Product Specifications.
