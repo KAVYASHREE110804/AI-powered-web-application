@@ -15,34 +15,34 @@ OUTPUTS_DIR = Path("outputs")
 #   OPENAI_MODEL=openai/gpt-4o
 DEFAULT_MODEL = "gpt-4o"
 
-SYSTEM_PROMPT = """You are a senior product manager. You are given transcripts
-and screenshots from product demo videos. Your job is to
-reverse-engineer the product and write a comprehensive PRD.
+SYSTEM_PROMPT = """You are a product analyst reverse-engineering a Product
+Requirements Document from product demo videos. You are given (1) the video
+transcript(s) and (2) screenshots of detected key scenes. These are your
+ONLY sources.
 
-The PRD must include these exact sections:
+GROUNDING RULES (strict):
+- Base every statement ONLY on the provided transcripts and screenshots.
+  Do NOT use outside knowledge about the product or company, even if you
+  recognize it.
+- NEVER invent technical details a demo video would not reveal — API endpoint
+  paths, database schemas, field names, internal architecture — unless they
+  are explicitly shown or spoken in the source.
+- For "Technical / Product Specifications", describe functional and
+  behavioral requirements inferred from the observed UI and narration,
+  NOT invented implementation details.
+- If a required section is not supported by the source, write:
+  "Not shown in source material." Do not fill the gap with plausible guesses.
 
-# 1. Product Overview
-What the product is and who it is for.
+LABELING:
+- Mark content as [Observed] when it is directly stated or visible in the
+  source, and reference the transcript line or scene it came from.
+- Mark content as [Inferred] when it is reasonable extrapolation. It must be
+  clearly flagged as inference, never presented as fact.
 
-# 2. Business Scenarios
-3 to 5 real-world situations where this product solves a problem.
-
-# 3. User Roles
-Every type of user with their permissions and goals.
-
-# 4. Key Features
-Every feature visible in the demo with a clear description.
-
-# 5. User Stories
-For each feature write:
-As a [role], I can [action] so that [benefit].
-
-# 6. Technical Specifications
-Inferred data models, key API endpoints, and technical decisions
-based on what you see in the UI.
-
-Be specific. Use the transcript and screenshots as your only
-source of truth. Do not make things up."""
+Produce the PRD with these sections: Product Overview, Business Scenarios,
+User Roles, Key Features, User Stories, Technical/Product Specifications.
+For each Key Feature, cite the specific transcript snippet or scene that
+supports it."""
 
 
 def image_to_base64(image_path: str) -> str:
@@ -84,19 +84,23 @@ def build_messages(videos: list) -> list:
         }
     ]
 
-    # OPENAI_IMAGE_DETAIL=low keeps requests under the ~8k input-token cap of
-    # free-tier providers like GitHub Models (85 tokens/image vs ~1k at full).
-    image_detail = os.getenv("OPENAI_IMAGE_DETAIL")
+    # Default "auto" = full-quality vision. Set OPENAI_IMAGE_DETAIL=low only
+    # to fit free-tier input-token caps (e.g. GitHub Models' ~8k); it
+    # downscales screenshots and weakens visual grounding.
+    image_detail = os.getenv("OPENAI_IMAGE_DETAIL") or "auto"
     for frame in _select_frames(videos):
-        image_url = {
-            "url": (
-                "data:image/jpeg;base64,"
-                f"{image_to_base64(frame['image_path'])}"
-            )
-        }
-        if image_detail:
-            image_url["detail"] = image_detail
-        user_content.append({"type": "image_url", "image_url": image_url})
+        user_content.append(
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": (
+                        "data:image/jpeg;base64,"
+                        f"{image_to_base64(frame['image_path'])}"
+                    ),
+                    "detail": image_detail,
+                },
+            }
+        )
 
     return [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -133,6 +137,7 @@ def generate_prd(videos: list, openai_key: str) -> str:
         model=os.getenv("OPENAI_MODEL", DEFAULT_MODEL),
         messages=messages,
         max_tokens=4000,
+        temperature=0.2,
         stream=True,
     )
 

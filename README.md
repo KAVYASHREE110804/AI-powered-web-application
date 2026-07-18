@@ -48,10 +48,14 @@ the next stage — so every stage can be run, tested, and debugged in isolation.
 
 Key design decisions:
 
-- **Grounded generation** — the PRD prompt instructs GPT-4o to use the
-  transcript and screenshots as its *only* source of truth, and the mockup
-  stage is grounded in the generated PRD, so the whole chain stays anchored
-  to what's actually in the videos.
+- **Grounding approach** — the PRD prompt enforces strict grounding rules:
+  the transcript and screenshots are the model's only permitted sources
+  (outside knowledge is forbidden even for recognizable products), invented
+  implementation details (API paths, schemas) are banned unless shown in the
+  video, unsupported sections must say "Not shown in source material", and
+  every claim is labeled [Observed] (with its supporting transcript/scene
+  citation) or [Inferred]. The PRD call runs at temperature 0.2 to further
+  reduce fabrication, and the mockup stage is grounded in the generated PRD.
 - **Token budgeting** — keyframes are sampled evenly across all videos and
   capped at 8 images per request; an optional low-detail image mode keeps
   requests inside free-tier token limits.
@@ -99,6 +103,10 @@ OPENAI_BASE_URL=https://models.github.ai/inference
 OPENAI_MODEL=openai/gpt-4o
 OPENAI_IMAGE_DETAIL=low
 ```
+
+Using a real OpenAI key? Remove `OPENAI_IMAGE_DETAIL=low` — it downscales
+screenshots and weakens visual grounding; the "low" setting only exists to
+fit GitHub Models' 8k input-token cap.
 
 ## Run — Web app (recommended)
 
