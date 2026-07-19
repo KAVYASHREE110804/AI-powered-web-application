@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bolt AI</title>
+    <style>
+        :root {
+            --rausch: #FF385C;
+            --dark: #222222;
+            --secondary: #717171;
+            --babu: #00A699;
+            --arches: #FFB400;
+            --border: #DDDDDD;
+            --hover-gray: #F7F7F7;
+            --white: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Circular', Helvetica, sans-serif;
+            background-color: var(--white);
+            color: var(--dark);
+        }
+
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 40px;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--rausch);
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .logo .bolt {
+            font-size: 24px;
+        }
+
+        .search-pill {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 8px 8px 8px 24px;
+            background: var(--white);
+            box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+        }
+
+        .search-pill .segment {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dark);
+            white-space: nowrap;
+        }
+
+        .search-pill .segment.muted {
+            color: var(--secondary);
+            font-weight: 400;
+        }
+
+        .search-pill .divider {
+            width: 1px;
+            height: 24px;
+            background: var(--border);
+        }
+
+        .search-pill .search-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--rausch);
+            color: var(--white);
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dark);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 24px;
+        }
+
+        .nav-link:hover {
+            background: var(--hover-gray);
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 6px 6px 6px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--dark);
+        }
+
+        .profile .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--secondary);
+        }
+
+        .hero {
+            padding: 40px 40px 8px;
+        }
+
+        .hero h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 8px;
+            color: var(--dark);
+        }
+
+        .hero p {
+            font-size: 15px;
+            font-weight: 400;
+            color: var(--secondary);
+            max-width: 760px;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .hero .stats {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .hero .stat-pill {
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dark);
+            background: var(--white);
+        }
+
+        .section-title {
+            padding: 32px 40px 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+            margin: 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            padding: 24px 40px 48px;
+        }
+
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card .image {
+            position: relative;
+            height: 180px;
+            background: var(--hover-gray);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--secondary);
+        }
+
+        .card .heart {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 18px;
+            color: var(--white);
+            text-shadow: 0 0 2px rgba(0,0,0,0.4);
+        }
+
+        .card .body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .card .title-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+            color: var(--dark);
+        }
+
+        .card .rating {
+            font-size: 14px;
+            color: var(--dark);
+            white-space: nowrap;
+        }
+
+        .card .rating .star {
+            color: var(--arches);
+        }
+
+        .card .subtitle {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--secondary);
+            margin: 0;
+            line-height: 1.4;
+            flex: 1;
+        }
+
+        .badge {
+            align-self: flex-start;
+            border-radius: 24px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--white);
+        }
+
+        .badge.observed {
+            background: var(--babu);
+        }
+
+        .badge.inferred {
+            background: var(--arches);
+        }
+
+        .card .detail {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .card .detail span {
+            font-weight: 400;
+            color: var(--secondary);
+        }
+
+        .card .cta {
+            margin-top: 8px;
+            background: var(--rausch);
+            color: var(--white);
+            border: none;
+            border-radius: 24px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            align-self: flex-start;
+        }
+
+        .footer {
+            border-top: 1px solid var(--border);
+            background: var(--hover-gray);
+            padding: 24px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 14px;
+            color: var(--secondary);
+        }
+
+        .footer a {
+            color: var(--secondary);
+            text-decoration: none;
+            margin-left: 24px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo"><span class="bolt">⚡</span> Bolt AI</div>
+        <div class="search-pill">
+            <span class="segment">Create app</span>
+            <div class="divider"></div>
+            <span class="segment">Connect backend</span>
+            <div class="divider"></div>
+            <span class="segment muted">Deploy</span>
+            <button class="search-btn">⌕</button>
+        </div>
+        <div class="nav-right">
+            <a href="#" class="nav-link">Become a builder</a>
+            <a href="#" class="nav-link">🌐</a>
+            <div class="profile">☰ <div class="avatar"></div></div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <h1>Bolt AI — build and deploy apps in 10–12 minutes</h1>
+        <p>A no-code platform that enables users to create and deploy functional applications within 10–12 minutes. It integrates with tools like Netlify and Supabase to handle backend and database functionalities, and is designed to simplify app development for users without coding knowledge.</p>
+        <div class="stats">
+            <span class="stat-pill">200K free tokens per account</span>
+            <span class="stat-pill">Host up to 10 apps free</span>
+            <span class="stat-pill">Premium from $99</span>
+            <span class="stat-pill">Netlify + Supabase built in</span>
+        </div>
+    </header>
+
+    <h2 class="section-title">Key Features</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="image">No-Code Builder<span class="heart">♡</span></div>
+            <div class="body">
+                <div class="title-row">
+                    <h3>No-Code App Development</h3>
+                    <div class="rating"><span class="star">★</span> 4.9</div>
+                </div>
+                <p class="subtitle">Create applications without writing any code — describe what you want and the AI builds it.</p>
+                <span class="badge observed">✓ Observed</span>
+                <div class="detail">10–12 min <span>per app</span></div>
+                <button class="cta">Start building</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="image">Integrations<span class="heart">♡</span></div>
+            <div class="body">
+                <div class="title-row">
+                    <h3>Third-Party Integrations</h3>
+                    <div class="rating"><span class="star">★</span> 4.8</div>
+                </div>
+                <p class="subtitle">Connects with Netlify for hosting and Supabase for backend and database functionality.</p>
+                <span class="badge observed">✓ Observed</span>
+                <div class="detail">Netlify + Supabase <span>included</span></div>
+                <button class="cta">Connect tools</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="image">Authentication<span class="heart">♡</span></div>
+            <div class="body">
+                <div class="title-row">
+                    <h3>User Authentication &amp; Registration</h3>
+                    <div class="rating"><span class="star">★</span> 4.7</div>
+                </div>
+                <p class="subtitle">Login and signup pages with authentication and database connections via Supabase.</p>
+                <span class="badge observed">✓ Observed</span>
+                <div class="detail">Login + Signup <span>built in</span></div>
+                <button class="cta">Set up auth</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="image">Templates<span class="heart">♡</span></div>
+            <div class="body">
+                <div class="title-row">
+                    <h3>Pre-Built Templates</h3>
+                    <div class="rating"><span class="star">★</span> 4.6</div>
+                </div>
+                <p class="subtitle">Pre-built templates for faster app creation, enabling apps to ship within 10–12 minutes.</p>
+                <span class="badge inferred">◉ Inferred</span>
+                <div class="detail">Faster starts <span>with templates</span></div>
+                <button class="cta">Browse templates</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="image">Hosting<span class="heart">♡</span></div>
+            <div class="body">
+                <div class="title-row">
+                    <h3>Hosting Capabilities</h3>
+                    <div class="rating"><span class="star">★</span> 4.9</div>
+                </div>
+                <p class="subtitle">Host applications directly from the platform with free-tier hosting via Netlify.</p>
+                <span class="badge observed">✓ Observed</span>
+                <div class="detail">10 apps <span>free hosting</span></div>
+                <button class="cta">Deploy now</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="image">AI Assistant<span class="heart">♡</span></div>
+            <div class="body">
+                <div class="title-row">
+                    <h3>AI-Powered Features</h3>
+                    <div class="rating"><span class="star">★</span> 5.0</div>
+                </div>
+                <p class="subtitle">AI assists in app creation and development, streamlining the entire build process.</p>
+                <span class="badge observed">✓ Observed</span>
+                <div class="detail">200K tokens <span>free per account</span></div>
+                <button class="cta">Try the AI</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <span>Bolt AI — Product Requirements Document</span>
+        <div>
+            <a href="#">Product Overview</a>
+            <a href="#">Business Scenarios</a>
+            <a href="#">User Roles</a>
+            <a href="#">User Stories</a>
+            <a href="#">Tech Specs</a>
+        </div>
+    </footer>
+</body>
+</html>
