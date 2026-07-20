@@ -45,7 +45,10 @@ Button padding — 14px 24px, font-weight 600, font-size 15px
 - Below that: "Your Projects" heading with a 3-column card grid
   Each card shows: App name, status badge (Deployed/Building/Error),
   last modified date, an "Open" button
-- Left sidebar: Home, My Projects, Netlify, Supabase, Settings links
+- NO sidebar. Navigation lives in the top navbar ONLY, mapped like this:
+  Home = the logo link (left) | My Projects = active filter tab above the
+  project grid | Netlify & Supabase = secondary links in the navbar (top
+  right) | Settings = ⚙ icon inside the profile menu (top right)
 
 ### Builder (builder.html)
 - Two-column layout (50/50):
@@ -76,6 +79,10 @@ Button padding — 14px 24px, font-weight 600, font-size 15px
 - Secondary "Deploy to Android" outlined button
 
 ## Strict rules:
+- SIDEBAR NAVIGATION IS STRICTLY FORBIDDEN on every screen. If a screen
+  seems to need one, map its items into the top navbar instead (links top
+  right, filter tabs above content, settings in the profile menu). Any
+  output containing a sidebar is WRONG.
 - NO Lorem Ipsum — use real content based on the provided PRD
 - NO external fonts, NO CDN links, NO JavaScript libraries
 - Every page must share the same navbar HTML/CSS — reproduce the exact

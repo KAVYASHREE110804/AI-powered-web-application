@@ -29,49 +29,78 @@ const styles = {
     justifyContent: 'space-between',
     padding: '0 24px',
     borderBottom: `1px solid ${colors.border}`,
+    gap: '16px',
   },
   logo: {
     fontWeight: 'bold',
     fontSize: '20px',
     color: colors.dark,
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    padding: 0,
   },
   tokens: {
     fontWeight: 600,
     fontSize: '16px',
     color: colors.secondary,
   },
-  avatar: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    background: colors.secondary,
-  },
-  mainContainer: {
+  navRight: {
     display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
   },
-  sidebar: {
-    width: '240px',
-    background: colors.white,
-    padding: '32px 16px',
-    borderRight: `1px solid ${colors.border}`,
-    boxSizing: 'border-box',
-  },
-  sidebarList: {
-    listStyle: 'none',
-    padding: 0,
-    margin: 0,
-  },
-  sidebarItem: {
-    marginBottom: '16px',
-  },
-  sidebarLink: {
+  navLink: {
     textDecoration: 'none',
     color: colors.dark,
     fontWeight: 600,
     fontSize: '16px',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    padding: 0,
+  },
+  profileWrap: {
+    position: 'relative',
+  },
+  avatarButton: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    background: colors.secondary,
+    border: 'none',
+    cursor: 'pointer',
+    padding: 0,
+  },
+  profileDropdown: {
+    position: 'absolute',
+    top: '48px',
+    right: 0,
+    background: colors.white,
+    border: `1px solid ${colors.border}`,
+    borderRadius: '12px',
+    boxShadow:
+      '0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05)',
+    padding: '8px 0',
+    minWidth: '160px',
+    zIndex: 10,
+  },
+  dropdownItem: {
+    display: 'block',
+    width: '100%',
+    textAlign: 'left',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    fontWeight: 600,
+    fontSize: '16px',
+    color: colors.dark,
+    padding: '8px 16px',
   },
   dashboardContent: {
-    flex: 1,
     padding: '32px',
   },
   heading: {
@@ -104,6 +133,25 @@ const styles = {
     fontWeight: 600,
     cursor: 'pointer',
   },
+  filterTabs: {
+    display: 'flex',
+    gap: '24px',
+    borderBottom: `1px solid ${colors.border}`,
+    marginBottom: '24px',
+  },
+  filterTab: (active) => ({
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    fontSize: '16px',
+    fontWeight: 600,
+    color: active ? colors.dark : colors.secondary,
+    padding: '0 0 12px',
+    borderBottom: active
+      ? `2px solid ${colors.rausch}`
+      : '2px solid transparent',
+  }),
   projectsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
@@ -153,8 +201,18 @@ const statusBackgrounds = {
   error: colors.rausch,
 };
 
-function Dashboard({ logoText, tokenText, navItems, projects, onSubmit, onOpenProject }) {
+function Dashboard({
+  logoText,
+  tokenText,
+  navLinks,
+  filterTabs,
+  projects,
+  onSubmit,
+  onOpenProject,
+}) {
   const [prompt, setPrompt] = useState('');
+  const [activeFilterTab, setActiveFilterTab] = useState(filterTabs[0]);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   const handleSubmit = () => {
     if (onSubmit) {
@@ -165,63 +223,89 @@ function Dashboard({ logoText, tokenText, navItems, projects, onSubmit, onOpenPr
   return (
     <div style={styles.page}>
       <div className="navbar" style={styles.navbar}>
-        <div className="logo" style={styles.logo}>{logoText}</div>
+        <button type="button" className="logo" style={styles.logo}>
+          {logoText}
+        </button>
         <div className="tokens" style={styles.tokens}>{tokenText}</div>
-        <div className="avatar" style={styles.avatar} />
+        <div className="nav-right" style={styles.navRight}>
+          {navLinks.map((link) => (
+            <button key={link} type="button" style={styles.navLink}>
+              {link}
+            </button>
+          ))}
+          <div style={styles.profileWrap}>
+            <button
+              type="button"
+              className="avatar"
+              style={styles.avatarButton}
+              onClick={() => setProfileMenuOpen((open) => !open)}
+            />
+            {profileMenuOpen && (
+              <div className="profile-dropdown" style={styles.profileDropdown}>
+                <button type="button" style={styles.dropdownItem}>
+                  Settings ⚙
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="main-container" style={styles.mainContainer}>
-        <div className="sidebar" style={styles.sidebar}>
-          <ul style={styles.sidebarList}>
-            {navItems.map((item) => (
-              <li key={item} style={styles.sidebarItem}>
-                <a href="#" style={styles.sidebarLink}>{item}</a>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="dashboard-content" style={styles.dashboardContent}>
-          <div className="prompt-container" style={styles.promptContainer}>
-            <textarea
-              placeholder="Describe the app you want to build..."
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              style={styles.promptTextarea}
-            />
+      <div className="dashboard-content" style={styles.dashboardContent}>
+        <div className="prompt-container" style={styles.promptContainer}>
+          <textarea
+            placeholder="Describe the app you want to build..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            style={styles.promptTextarea}
+          />
+          <div>
             <button type="button" onClick={handleSubmit} style={styles.promptButton}>
               Submit
             </button>
           </div>
+        </div>
 
-          <h1 style={styles.heading}>Your Projects</h1>
+        <h1 style={styles.heading}>Your Projects</h1>
 
-          <div className="projects-grid" style={styles.projectsGrid}>
-            {projects.map((project) => (
-              <div key={project.name} className="project-card" style={styles.projectCard}>
-                <h3 style={styles.projectTitle}>{project.name}</h3>
-                <span
-                  className={`status ${project.status}`}
-                  style={{
-                    ...styles.status,
-                    background: statusBackgrounds[project.status],
-                  }}
-                >
-                  {project.statusLabel}
-                </span>
-                <div className="info" style={styles.info}>
-                  Last modified: {project.lastModified}
-                </div>
-                <button
-                  type="button"
-                  style={styles.openButton}
-                  onClick={() => onOpenProject && onOpenProject(project)}
-                >
-                  Open
-                </button>
+        <div className="filter-tabs" style={styles.filterTabs}>
+          {filterTabs.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              style={styles.filterTab(tab === activeFilterTab)}
+              onClick={() => setActiveFilterTab(tab)}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        <div className="projects-grid" style={styles.projectsGrid}>
+          {projects.map((project) => (
+            <div key={project.name} className="project-card" style={styles.projectCard}>
+              <h3 style={styles.projectTitle}>{project.name}</h3>
+              <span
+                className={`status ${project.status}`}
+                style={{
+                  ...styles.status,
+                  background: statusBackgrounds[project.status],
+                }}
+              >
+                {project.statusLabel}
+              </span>
+              <div className="info" style={styles.info}>
+                Last modified: {project.lastModified}
               </div>
-            ))}
-          </div>
+              <button
+                type="button"
+                style={styles.openButton}
+                onClick={() => onOpenProject && onOpenProject(project)}
+              >
+                Open
+              </button>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -231,7 +315,8 @@ function Dashboard({ logoText, tokenText, navItems, projects, onSubmit, onOpenPr
 Dashboard.propTypes = {
   logoText: PropTypes.string,
   tokenText: PropTypes.string,
-  navItems: PropTypes.arrayOf(PropTypes.string),
+  navLinks: PropTypes.arrayOf(PropTypes.string),
+  filterTabs: PropTypes.arrayOf(PropTypes.string),
   projects: PropTypes.arrayOf(
     PropTypes.shape({
       name: PropTypes.string.isRequired,
@@ -247,7 +332,8 @@ Dashboard.propTypes = {
 Dashboard.defaultProps = {
   logoText: 'Bolt AI',
   tokenText: '200,000 tokens',
-  navItems: ['Home', 'My Projects', 'Netlify', 'Supabase', 'Settings ⚙'],
+  navLinks: ['Netlify', 'Supabase'],
+  filterTabs: ['My Projects'],
   projects: [
     {
       name: 'My First App',
